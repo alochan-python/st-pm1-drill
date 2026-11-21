@@ -105,7 +105,7 @@ const J={o:"○",t:"△",x:"×"},JC={o:"j-o",t:"j-t",x:"j-x"};
 function renderAnswer(timeout){
   const m=curMode==="C"?S.C.src:curMode,sp=S.speed;let h="";
   const jd=suggested?`<div class="judge ${JC[suggested]}">【判定】${J[suggested]} <span class="hint">（仮判定・下のボタンで修正可）</span></div>`:`<div class="judge">【判定】<span class="hint">○△×を自己判定（1・2・3）</span></div>`;
-  h+=m==="A"?`<div class="blk"><h4>設問</h4><div class="note" style="color:var(--ink)">${esc(cur.q)}</div>${sp<=2?`<div class="kw">本文キーワード：${esc(cur.k)}</div>`:""}</div>`:`<div class="blk"><h4>設問</h4><div>${esc(cur.sq)}<span class="kw">（本文キーワード：${esc(cur.k)}）</span></div></div>`;
+  h+=m==="A"?`<div class="blk"><h4>設問</h4><div class="qa">${esc(cur.q)}</div>${sp<=2?`<div class="kw">本文キーワード：${esc(cur.k)}</div>`:""}</div>`:`<div class="blk"><h4>設問</h4><div class="qa">${esc(cur.sq)}</div><div><span class="kw">（本文キーワード：${esc(cur.k)}）</span></div></div>`;
   if(userAns)h+=`<div class="blk"><h4>あなたの回答</h4><div>${esc(userAns)}</div></div>`;
   if(m==="A"){
     h+=`<div class="blk"><h4>【IPA解答】</h4><div class="ans">${esc(cur.a)}</div></div>`;
