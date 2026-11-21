@@ -21,7 +21,7 @@ let phase="q",cur=null,curMode=null,timer=null,tLeft=0,tTotal=0,suggested=null,u
 const slider=$("#speed");
 function setSpeed(v){v=Math.max(1,Math.min(4,v));S.speed=v;slider.value=v;
   $("#spdLabel").innerHTML=`速度${v}：${SPEED[v].name}<small>答えまで ${SPEED[v].sec}秒／表示量 ${["","詳しく","標準","最小限","○△×と核心のみ"][v]}</small>`;
-  save();if(phase==="a")renderAnswer(); else if(phase==="q"&&cur){tTotal=SPEED[v].sec;tLeft=Math.min(tLeft,tTotal)}}
+  save();if(phase==="a")renderAnswer(); else if(phase==="q"&&cur){tTotal=SPEED[v].sec;deadline=Math.min(deadline,Date.now()+tTotal*1000)}}
 slider.addEventListener("input",()=>setSpeed(+slider.value));
 
 // ---------- 進捗 ----------
@@ -34,9 +34,11 @@ function renderProg(){
 }
 
 // ---------- タイマー ----------
-function startTimer(){stopTimer();tTotal=SPEED[S.speed].sec;tLeft=tTotal;
-  timer=setInterval(()=>{tLeft-=0.1;$("#bar").style.width=Math.max(0,tLeft/tTotal*100)+"%";
-    if(tLeft<=0){stopTimer();submit(true)}},100)}
+let deadline=0;
+function startTimer(){stopTimer();tTotal=SPEED[S.speed].sec;deadline=Date.now()+tTotal*1000;tick();timer=setInterval(tick,100)}
+function tick(){tLeft=(deadline-Date.now())/1000;$("#bar").style.width=Math.max(0,tLeft/tTotal*100)+"%";
+  const c=$("#count");if(c)c.textContent=Math.max(0,Math.ceil(tLeft))+"秒後に答え";
+  if(tLeft<=0){stopTimer();submit(true)}}
 function stopTimer(){if(timer)clearInterval(timer);timer=null}
 
 // ---------- 採点補助（文字バイグラム一致率） ----------
@@ -86,7 +88,7 @@ function show(){
   }
   $("#main").innerHTML=`<div class="card"><div class="hd"><span class="tag">${tag}</span>No.${cur.no}　${esc(cur.h)}</div>${body}
   <textarea id="ans" placeholder="（任意）回答を入力するとアプリが仮判定します。入力しなくても時間が来れば答えが出ます"></textarea><div class="cnt" id="cnt">0字</div>
-  <div class="btns"><button onclick="submit()">すぐ答えを見る ⏎</button></div></div>`;
+  <div class="btns"><button onclick="submit()">すぐ答えを見る ⏎</button></div><div class="hint" id="count"></div></div>`;
   const ta=$("#ans");
   ta.addEventListener("input",()=>$("#cnt").textContent=norm(ta.value).length+"字");
   ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();submit()}});
@@ -103,19 +105,19 @@ const J={o:"○",t:"△",x:"×"},JC={o:"j-o",t:"j-t",x:"j-x"};
 function renderAnswer(timeout){
   const m=curMode==="C"?S.C.src:curMode,sp=S.speed;let h="";
   const jd=suggested?`<div class="judge ${JC[suggested]}">【判定】${J[suggested]} <span class="hint">（仮判定・下のボタンで修正可）</span></div>`:`<div class="judge">【判定】<span class="hint">○△×を自己判定（1・2・3）</span></div>`;
+  h+=m==="A"?`<div class="blk"><h4>設問</h4><div class="note" style="color:var(--ink)">${esc(cur.q)}</div>${sp<=2?`<div class="kw">本文キーワード：${esc(cur.k)}</div>`:""}</div>`:`<div class="blk"><h4>設問</h4><div>${esc(cur.sq)}<span class="kw">（本文キーワード：${esc(cur.k)}）</span></div></div>`;
   if(userAns)h+=`<div class="blk"><h4>あなたの回答</h4><div>${esc(userAns)}</div></div>`;
   if(m==="A"){
     h+=`<div class="blk"><h4>【IPA解答】</h4><div class="ans">${esc(cur.a)}</div></div>`;
     if(sp<=3){const ms=missing(userAns,cur.a);h+=`<div class="blk miss"><h4>【不足語句】</h4><div>${ms.length?ms.map(x=>`<span>${esc(x)}</span>`).join(""):"なし"}</div></div>`}
     h+=`<div class="blk"><h4>【核心】</h4><div>${esc(cur.sq)} → <b>${esc(cur.sa)}</b></div></div>`;
-    if(sp<=2)h+=`<div class="blk"><h4>本文キーワード</h4><div>${esc(cur.k)}</div></div>`;
-    if(sp===1){h+=`<div class="blk"><h4>設問原文</h4><div class="note">${esc(cur.q)}</div></div>`;if(cur.n)h+=`<div class="blk"><h4>注記</h4><div class="note">${esc(cur.n)}</div></div>`}
+        if(sp===1){if(cur.n)h+=`<div class="blk"><h4>注記</h4><div class="note">${esc(cur.n)}</div></div>`}
   }else{
     h+=`<div class="blk"><h4>【常識として覚えること】</h4><div class="cmn">${esc(cur.c)}</div></div>`;
     h+=`<div class="blk"><h4>【反射キー】</h4><div class="big"><b>${esc(RK[cur.no])}</b></div></div>`;
     if(sp<=3){const ms=missing(userAns,cur.c);if(sp<=2)h+=`<div class="blk miss"><h4>不足語句</h4><div>${ms.length?ms.slice(0,8).map(x=>`<span>${esc(x)}</span>`).join(""):"なし"}</div></div>`}
     if(sp<=2)h+=`<div class="blk"><h4>設問→答え</h4><div>${esc(cur.sq)} → ${esc(cur.sa)}</div></div>`;
-    if(sp===1)h+=`<div class="blk"><h4>本文キーワード</h4><div>${esc(cur.k)}</div></div>`;
+    
   }
   $("#main").innerHTML=`<div class="card"><div class="hd">No.${cur.no}　${esc(cur.h)}</div>${jd}${h}
   <div class="btns"><button class="bo" onclick="decide('o')">○ 1</button><button class="bt" onclick="decide('t')">△ 2</button><button class="bx" onclick="decide('x')">× 3</button></div>
