@@ -1,7 +1,7 @@
 // 反射キー（常識モード用・10〜20字の要約）
 const RK={1:"人増やせない→負荷削減で捻出",2:"品質重視→温度等の輸送条件",3:"欠品防止→納入日数を提示",4:"接続→即時参照→回答が速い",5:"需要の先行情報＝特売イベント",6:"本社集約→量で価格交渉",7:"追跡＝出荷先×ロット番号",8:"見直し最小→新旧の対応整理",9:"一元化の副作用＝適時性欠如",10:"体制見直し＝当事者を参加",11:"既存記録あり→自動連携",12:"記述の標準化＋中心組織の支援",13:"工程別集計→ボトルネック予測",14:"顧客の人不足→業務を受託",15:"品目増→事前準備の割合増",16:"枠＝時間帯ごとの作業者数",17:"品質向上の理由＝一段手前の精度",18:"学習データ＝人が見つけた正解",19:"ニーズ＝自ら解決したい",20:"KPI＝単位を守る（割合）",21:"現象→品質特性へ抽象化",22:"ボトルネック＝最大負荷の1作業",23:"統制＝自動化を管理できない",24:"リスク＝原因→事業への結果",25:"新規構築＝外部の制約を解消",26:"狙い＝顧客が新たにできる事",27:"販促の狙い＝顧客行動の変化",28:"権限委譲＝機会損失を防ぐ",29:"機能→対応する業務の取組",30:"再構築＝変更しにくさを解消",31:"API連携→新顧客層の注文獲得",32:"予測で決める＝量・時期・確保",33:"事業リスク＝原因でなく悪影響",34:"新基盤の目的＝保証したい成果",35:"技術採用理由＝固有の性質",36:"解決する問題＝今の悪い状態",37:"仕組み上の課題＝不都合を状態で",38:"抑止＝加害者に不利益",39:"強み＝資源／弱み＝全体の不利",40:"基盤の狙い＝変更容易性と連携",41:"データ取得の目的＝個別最適化",42:"PoCのKPI＝利用者数（人数）",43:"自社の強み＝他社比較で優位",44:"多く必要な理由＝性能差分",45:"提携理由＝自社で作れない技術",46:"市場の問題＝今の不足状態",47:"競争優位＝シェア・保有機能",48:"将来構想の再構築＝拡張性",49:"地域密着＋双方向＝価値共創",50:"IT活用→体験する新サービス",51:"強み＝満足に直結する組織能力",52:"分析の目的＝誰にいつ働き掛け",53:"技術×顧客課題＝具体用途",54:"背景＝必要になった現状制約",55:"提携理由＝阻害要因を解消",56:"いつまでに＝期限＋完了行為",57:"環境変化＝外部の変化",58:"表面化した問題＝原因の先の実害",59:"ニーズ＝誰が何を・主体確認",60:"戦略の狙い＝企業側の達成事項",61:"機能＝どの内容をどの方法へ",62:"具体例→能力へ一段抽象化"};
 
-const SPEED={1:{name:"じっくり",sec:120},2:{name:"標準",sec:75},3:{name:"高速",sec:40},4:{name:"超高速",sec:20}};
+const SPEED={1:{name:"じっくり",sec:30},2:{name:"標準",sec:15},3:{name:"高速",sec:8},4:{name:"超高速",sec:4}};
 const KEY="st-pm1-drill-v1";
 const $=s=>document.querySelector(s);
 
@@ -20,7 +20,7 @@ let phase="q",cur=null,curMode=null,timer=null,tLeft=0,tTotal=0,suggested=null,u
 // ---------- 速度ゲージ ----------
 const slider=$("#speed");
 function setSpeed(v){v=Math.max(1,Math.min(4,v));S.speed=v;slider.value=v;
-  $("#spdLabel").innerHTML=`速度${v}：${SPEED[v].name}<small>制限 ${SPEED[v].sec}秒／表示量 ${["","詳しく","標準","最小限","○△×と核心のみ"][v]}</small>`;
+  $("#spdLabel").innerHTML=`速度${v}：${SPEED[v].name}<small>答えまで ${SPEED[v].sec}秒／表示量 ${["","詳しく","標準","最小限","○△×と核心のみ"][v]}</small>`;
   save();if(phase==="a")renderAnswer(); else if(phase==="q"&&cur){tTotal=SPEED[v].sec;tLeft=Math.min(tLeft,tTotal)}}
 slider.addEventListener("input",()=>setSpeed(+slider.value));
 
@@ -85,25 +85,24 @@ function show(){
     body=`<div class="kw">本文キーワード：${esc(cur.k)}</div><div class="q big">${esc(cur.sq)}</div><div class="hint">→ この設問で働かせる「常識」を答える</div>`;
   }
   $("#main").innerHTML=`<div class="card"><div class="hd"><span class="tag">${tag}</span>No.${cur.no}　${esc(cur.h)}</div>${body}
-  <textarea id="ans" placeholder="回答を入力（Enterで判定／Shift+Enterで改行）"></textarea><div class="cnt" id="cnt">0字</div>
-  <div class="btns"><button onclick="submit()">判定 ⏎</button><button onclick="skip()">わからない</button></div></div>`;
-  const ta=$("#ans");ta.focus();
+  <textarea id="ans" placeholder="（任意）回答を入力するとアプリが仮判定します。入力しなくても時間が来れば答えが出ます"></textarea><div class="cnt" id="cnt">0字</div>
+  <div class="btns"><button onclick="submit()">すぐ答えを見る ⏎</button></div></div>`;
+  const ta=$("#ans");
   ta.addEventListener("input",()=>$("#cnt").textContent=norm(ta.value).length+"字");
   ta.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();submit()}});
   startTimer();
 }
-function skip(){$("#ans").value="";submit()}
 function submit(timeout){
   if(phase!=="q")return;stopTimer();
   userAns=$("#ans")?$("#ans").value:"";
   const m=curMode==="C"?S.C.src:curMode;
-  suggested=suggest(userAns,m==="A"?cur.a:cur.c);
+  suggested=norm(userAns)?suggest(userAns,m==="A"?cur.a:cur.c):null;
   phase="a";renderAnswer(timeout);
 }
 const J={o:"○",t:"△",x:"×"},JC={o:"j-o",t:"j-t",x:"j-x"};
 function renderAnswer(timeout){
   const m=curMode==="C"?S.C.src:curMode,sp=S.speed;let h="";
-  const jd=`<div class="judge ${JC[suggested]}">【判定】${J[suggested]} <span class="hint">（自動判定・下のボタンで修正可）${timeout===true?"　時間切れ":""}</span></div>`;
+  const jd=suggested?`<div class="judge ${JC[suggested]}">【判定】${J[suggested]} <span class="hint">（仮判定・下のボタンで修正可）</span></div>`:`<div class="judge">【判定】<span class="hint">○△×を自己判定（1・2・3）</span></div>`;
   if(userAns)h+=`<div class="blk"><h4>あなたの回答</h4><div>${esc(userAns)}</div></div>`;
   if(m==="A"){
     h+=`<div class="blk"><h4>【IPA解答】</h4><div class="ans">${esc(cur.a)}</div></div>`;
@@ -120,7 +119,7 @@ function renderAnswer(timeout){
   }
   $("#main").innerHTML=`<div class="card"><div class="hd">No.${cur.no}　${esc(cur.h)}</div>${jd}${h}
   <div class="btns"><button class="bo" onclick="decide('o')">○ 1</button><button class="bt" onclick="decide('t')">△ 2</button><button class="bx" onclick="decide('x')">× 3</button></div>
-  <div class="hint">Enter＝自動判定のまま次へ／1・2・3で判定を確定して次へ</div></div>`;
+  <div class="hint">1・2・3で判定して次へ${suggested?"／Enter＝仮判定のまま次へ":""}</div></div>`;
 }
 function decide(j){
   if(phase!=="a")return;
@@ -156,14 +155,15 @@ function home(){curMode=null;phase="none";renderProg();
   $("#main").innerHTML=`<div class="card"><div class="big">モードを選んでください</div>
   <div class="btns"><button onclick="start('A')">A：IPA解答（${a.n}/62）</button><button onclick="start('B')">B：常識（${b.n}/62）</button></div>
   <div class="btns"><button onclick="start('C')">C：△×だけ復習</button><button onclick="showResult()">E：終了・成績</button></div>
-  <div class="hint">速度ゲージは上のスライダー（キー：[ ] または ← →）。速度で制限時間と解答の表示量が変わります。進捗はこのブラウザに保存され、再開時は続きから始まります。</div></div>`}
+  <div class="hint">速度ゲージは上のスライダー（キー：[ ] または ← →）。速度で答えが出るまでの秒数（30/15/8/4秒）と表示量が変わります。入力は任意、Space/Enterですぐ答えを表示。進捗はこのブラウザに保存され、再開時は続きから始まります。</div></div>`}
 
 // ---------- キー操作 ----------
 document.addEventListener("keydown",e=>{
   if(e.target.tagName==="TEXTAREA")return;
   if(e.key==="["||e.key==="ArrowLeft"){setSpeed(S.speed-1);e.preventDefault()}
   else if(e.key==="]"||e.key==="ArrowRight"){setSpeed(S.speed+1);e.preventDefault()}
-  else if(phase==="a"){if(e.key==="1")decide("o");else if(e.key==="2")decide("t");else if(e.key==="3")decide("x");else if(e.key==="Enter"){e.preventDefault();decide(suggested)}}
+  else if(phase==="a"){if(e.key==="1")decide("o");else if(e.key==="2")decide("t");else if(e.key==="3")decide("x");else if(e.key==="Enter"&&suggested){e.preventDefault();decide(suggested)}}
+  else if(phase==="q"&&(e.key===" "||e.key==="Enter")){e.preventDefault();submit()}
 });
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
