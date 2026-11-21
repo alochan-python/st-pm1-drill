@@ -111,9 +111,10 @@ function renderAnswer(timeout){
     h+=`<div class="blk"><h4>【IPA解答】</h4><div class="ans">${esc(cur.a)}</div></div>`;
     if(sp<=3){const ms=missing(userAns,cur.a);h+=`<div class="blk miss"><h4>【不足語句】</h4><div>${ms.length?ms.map(x=>`<span>${esc(x)}</span>`).join(""):"なし"}</div></div>`}
     h+=`<div class="blk"><h4>【核心】</h4><div>${esc(cur.sq)} → <b>${esc(cur.sa)}</b></div></div>`;
+    h+=`<div class="blk"><h4 class="star">★ 常識として覚えること</h4><div class="cmn">${esc(cur.c)}</div></div>`;
         if(sp===1){if(cur.n)h+=`<div class="blk"><h4>注記</h4><div class="note">${esc(cur.n)}</div></div>`}
   }else{
-    h+=`<div class="blk"><h4>【常識として覚えること】</h4><div class="cmn">${esc(cur.c)}</div></div>`;
+    h+=`<div class="blk"><h4 class="star">★ 常識として覚えること</h4><div class="cmn">${esc(cur.c)}</div></div>`;
     h+=`<div class="blk"><h4>【反射キー】</h4><div class="big"><b>${esc(RK[cur.no])}</b></div></div>`;
     if(sp<=3){const ms=missing(userAns,cur.c);if(sp<=2)h+=`<div class="blk miss"><h4>不足語句</h4><div>${ms.length?ms.slice(0,8).map(x=>`<span>${esc(x)}</span>`).join(""):"なし"}</div></div>`}
     if(sp<=2)h+=`<div class="blk"><h4>設問→答え</h4><div>${esc(cur.sq)} → ${esc(cur.sa)}</div></div>`;
