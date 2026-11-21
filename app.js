@@ -137,6 +137,7 @@ function decide(j){
 // ---------- 切替・終了 ----------
 $("#btnSwitch").onclick=()=>start(S.lastMode==="A"?"B":"A");
 $("#btnEnd").onclick=()=>showResult();
+$("#btnHome").onclick=()=>home();
 document.querySelectorAll(".menu [data-m]").forEach(b=>b.onclick=()=>start(b.dataset.m));
 function showResult(){
   stopTimer();phase="none";curMode=null;renderProg();
@@ -152,15 +153,16 @@ function showResult(){
   <div class="blk"><h4>最優先復習10件</h4><table>${pri.slice(0,10).map(p=>`<tr><td>No.${p.d.no}</td><td>${esc(p.d.h)}</td><td>A:${J[p.ja]||"-"} B:${J[p.jb]||"-"}</td></tr>`).join("")||"<tr><td>なし</td></tr>"}</table></div>
   <div class="btns"><button onclick="if(confirm('成績と進捗をリセットしますか？')){S=fresh();save();home()}">リセット</button></div></div>`;
 }
-function home(){curMode=null;phase="none";renderProg();
+function home(){stopTimer();$("#bar").style.width="100%";curMode=null;phase="none";renderProg();
   const a=counts("A"),b=counts("B");
   $("#main").innerHTML=`<div class="card"><div class="big">モードを選んでください</div>
   <div class="btns"><button onclick="start('A')">A：IPA解答（${a.n}/62）</button><button onclick="start('B')">B：常識（${b.n}/62）</button></div>
   <div class="btns"><button onclick="start('C')">C：△×だけ復習</button><button onclick="showResult()">E：終了・成績</button></div>
-  <div class="hint">速度ゲージは上のスライダー（キー：[ ] または ← →）。速度で答えが出るまでの秒数（30/15/8/4秒）と表示量が変わります。入力は任意、Space/Enterですぐ答えを表示。進捗はこのブラウザに保存され、再開時は続きから始まります。</div></div>`}
+  <div class="hint">速度ゲージは上のスライダー（キー：[ ] または ← →）。速度で答えが出るまでの秒数（30/15/8/4秒）と表示量が変わります。入力は任意、Space/Enterですぐ答えを表示。Escまたは「⌂ メイン」でこの画面に戻れます（進捗は保持）。進捗はこのブラウザに保存され、再開時は続きから始まります。</div></div>`}
 
 // ---------- キー操作 ----------
 document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){e.preventDefault();home();return}
   if(e.target.tagName==="TEXTAREA")return;
   if(e.key==="["||e.key==="ArrowLeft"){setSpeed(S.speed-1);e.preventDefault()}
   else if(e.key==="]"||e.key==="ArrowRight"){setSpeed(S.speed+1);e.preventDefault()}
